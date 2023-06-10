@@ -1,36 +1,51 @@
-import requests
-from bs4 import BeautifulSoup
-import json
+import time
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.by import By
 
-def get_table_contents(url):
-    response = requests.get(url)
-    soup = BeautifulSoup(response.content, 'html.parser')
-    
-    
-    table = soup.find('table')
-    heading1 = table.find('tr').text.strip()    
-    
-    contents = []
-    for row in table.find_all('tr'):
-        row_data = []
-        for cell in row.find_all('td'):
-            row_data.append(cell.text.strip())
-        if row_data:
-            contents.append(row_data)
+chromedriver_path = "/usr/local/bin/chromedriver"
 
-    
-    return contents,heading1
+driver = webdriver.Chrome()
 
-company_name = input("Enter the company name: ")
-url = f"http://www.levels.fyi/companies/{company_name}/salaries/software-engineer/"
+company = input("Please enter the company name: ")
 
+url = f"https://www.levels.fyi/companies/{company}/salaries/software-engineer?yoeChoice=junior&country=113"
 
-table_headings = get_table_contents(url)[1]
-table_contents = get_table_contents(url)[0]
+driver.get(url)
 
-print(f"The average median fresher salary at {company_name} is",table_contents[0][1])
+# Click the first button
+button1 = driver.find_element(By.XPATH, '//*[@id="blur-prompt_blurPromptCell__qv6Ha"]/div/div/button')
+button1.click()
 
-#json_data = json.dumps(table_contents, indent=4)
-#print(json_data)
+# Wait for the second button to appear
+time.sleep(2)
 
+# Click the second button
+button2 = driver.find_element(By.XPATH, '/html/body/div[1]/div[2]/div/div[1]/div/div[8]/table/tbody/tr[5]/td/div/div/button')
+button2.click()
+
+# Wait for the table to load
+time.sleep(4)
+
+# Find the table
+def check(driver):
+    table = driver.find_element(By.XPATH,'/html/body/div[1]/div[2]/div/div[1]/div/div[8]/table/tbody')
+
+# Find all rows in the table
+    rows = table.find_elements(By.TAG_NAME, "tr")
+
+# Iterate over the rows and extract the data
+    for row in rows:
+        cells = row.find_elements(By.TAG_NAME, "td")
+
+        row_data = [cell.text for cell in cells]
+        print(row_data)
+
+for i in range(10):
+    check(driver)
+    button3 = driver.find_element(By.CSS_SELECTOR, ".MuiButton-root.MuiButton-text.MuiButton-textPrimary.MuiButton-sizeSmall.MuiButton-textSizeSmall.MuiButtonBase-root.css-1f3e5dk")
+    button3.click() 
+    time.sleep(5)
+# Clean up and close the browser
+driver.quit()
 
